@@ -14,9 +14,9 @@ int main(){
 	while(!exit){
 		clear();
 		switch(menu()){
-		case MENU_PLAY: play(); break;
-		case MENU_EXIT: exit=1; break;
-		default: break;
+			case MENU_PLAY: play(); break;
+			case MENU_EXIT: exit=1; break;
+			default: break;
 		}
 	}
 
@@ -32,13 +32,13 @@ void InitTetris(){
 		for(i=0;i<WIDTH;i++)
 			field[j][i]=0;
 
-  cur_id = pthread_self();
-  start_color();
-  init_pair(1,COLOR_RED,COLOR_BLACK);
-  init_pair(2,COLOR_BLUE,COLOR_BLACK);
-  init_pair(3,COLOR_GREEN,COLOR_BLACK);
-  init_pair(4,COLOR_YELLOW,COLOR_BLACK);
-  init_pair(5,COLOR_WHITE,COLOR_BLACK);
+	cur_id = pthread_self();
+	start_color();
+	init_pair(1,COLOR_RED,COLOR_BLACK);
+	init_pair(2,COLOR_BLUE,COLOR_BLACK);
+	init_pair(3,COLOR_GREEN,COLOR_BLACK);
+	init_pair(4,COLOR_YELLOW,COLOR_BLACK);
+	init_pair(5,COLOR_WHITE,COLOR_BLACK);
 	nextBlock[0]=rand()%10;
 	nextBlock[1]=rand()%10;
 	blockRotate=0;
@@ -54,7 +54,7 @@ void InitTetris(){
 	DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
 	DrawNextBlock(nextBlock);
 	PrintScore(score);
-  
+
 }
 
 void DrawOutline(){	
@@ -77,24 +77,24 @@ int GetCommand(){
 	int command;
 	command = wgetch(stdscr);
 	switch(command){
-	case KEY_UP:
-		break;
-	case KEY_DOWN:
-		break;
-	case KEY_LEFT:
-		break;
-	case KEY_RIGHT:
-		break;
-	case ' ':	/* space key*/
-		/*fall block*/
-		break;
-	case 'q':
-	case 'Q':
-		command = QUIT;
-		break;
-	default:
-		command = NOTHING;
-		break;
+		case KEY_UP:
+			break;
+		case KEY_DOWN:
+			break;
+		case KEY_LEFT:
+			break;
+		case KEY_RIGHT:
+			break;
+		case ' ':	/* space key*/
+			/*fall block*/
+			break;
+		case 'q':
+		case 'Q':
+			command = QUIT;
+			break;
+		default:
+			command = NOTHING;
+			break;
 	}
 	return command;
 }
@@ -102,28 +102,30 @@ int GetCommand(){
 int ProcessCommand(int command){
 	int ret=1;
 	int drawFlag=0;
+    if(process_flag)
+        return NOTHING;
 	switch(command){
-	case QUIT:
-		ret = QUIT;
-		break;
-	case KEY_UP:
-		if((drawFlag = CheckToMove(field,nextBlock[0],(blockRotate+1)%4,blockY,blockX)))
-			blockRotate=(blockRotate+1)%4;
-		break;
-	case KEY_DOWN:
-		if((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY+1,blockX)))
-			blockY++;
-		break;
-	case KEY_RIGHT:
-		if((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY,blockX+1)))
-			blockX++;
-		break;
-	case KEY_LEFT:
-		if((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY,blockX-1)))
-			blockX--;
-		break;
-	default:
-		break;
+		case QUIT:
+			ret = QUIT;
+			break;
+		case KEY_UP:
+			if((drawFlag = CheckToMove(field,nextBlock[0],(blockRotate+1)%4,blockY,blockX)))
+				blockRotate=(blockRotate+1)%4;
+			break;
+		case KEY_DOWN:
+			if((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY+1,blockX)))
+				blockY++;
+			break;
+		case KEY_RIGHT:
+			if((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY,blockX+1)))
+				blockX++;
+			break;
+		case KEY_LEFT:
+			if((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY,blockX-1)))
+				blockX--;
+			break;
+		default:
+			break;
 	}
 	if(drawFlag) DrawChange(field,command,nextBlock[0],blockRotate,blockY,blockX);
 	return ret;	
@@ -135,11 +137,11 @@ void DrawField(){
 		move(j+1,1);
 		for(i=0;i<WIDTH;i++){
 			if(field[j][i]){
-        attron(COLOR_PAIR(field[j][i]));
+				attron(COLOR_PAIR(field[j][i]));
 				attron(A_REVERSE);
 				printw(" ");
 				attroff(A_REVERSE);
-        attron(COLOR_PAIR(5));
+				attron(COLOR_PAIR(5));
 			}
 			else printw(" ");
 		}
@@ -158,11 +160,11 @@ void DrawNextBlock(int *nextBlock){
 		move(4+i,WIDTH+13);
 		for( j = 0; j < BLOCK_WIDTH; j++ ){
 			if( block[nextBlock[1]][0][i][j]){
-        attron(COLOR_PAIR(block[nextBlock[1]][0][i][j]));
+				attron(COLOR_PAIR(block[nextBlock[1]][0][i][j]));
 				attron(A_REVERSE);
 				printw(" ");
 				attroff(A_REVERSE);
-        attron(COLOR_PAIR(5));
+				attron(COLOR_PAIR(5));
 			}
 			else printw(" ");
 		}
@@ -175,11 +177,11 @@ void DrawBlock(int y, int x, int blockID,int blockRotate,char tile){
 		for(j=0;j<BLOCK_WIDTH;j++){
 			if(block[blockID][blockRotate][i][j] && i+y>=0){
 				move(i+y+1,j+x+1);
-        attron(COLOR_PAIR(block[blockID][blockRotate][i][j]));
+				attron(COLOR_PAIR(block[blockID][blockRotate][i][j]));
 				attron(A_REVERSE);
 				printw(" ");
 				attroff(A_REVERSE);
-        attron(COLOR_PAIR(5));
+				attron(COLOR_PAIR(5));
 			}
 		}
 
@@ -217,9 +219,11 @@ void play(){
 			alarm(1);
 			timed_out=1;
 		}
-	
-		
+
+
 		command = GetCommand();
+        move(14,2);
+        printw("%d",process_flag);
 		if(ProcessCommand(command)==QUIT){
 			alarm(0);
 			DrawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
@@ -229,7 +233,7 @@ void play(){
 			getch();
 
 			return;
-		
+
 		}
 	}while(!gameOver);
 
@@ -254,7 +258,7 @@ char menu(){
 /////////////////////////첫주차 실습에서 구현해야 할 함수/////////////////////////
 
 int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
-  int i,j;
+	int i,j;
 	for(i=0 ; i < BLOCK_HEIGHT ; i++){
 		for(j=0 ; j < BLOCK_WIDTH ; j++){
 			if(block[currentBlock][blockRotate][i][j]){
@@ -271,125 +275,128 @@ int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int bloc
 }
 
 int CheckFall(char f[HEIGHT][WIDTH]){
-  int i,flag,j,top,k,gap,p;
-  flag = 0;
-  
-  for(i=0; i < WIDTH ; i++){
-    top = 0;
-    gap = 0;
-    for(j=0; j < HEIGHT ; j++){
-      if(f[j][i]&&!top){
-        top = j;
-      }
-      if(!f[j][i] && top){
-        flag = 1;
-        gap = 0;
-        for(k = j ; k < HEIGHT ; k++,gap++){
-          if(f[k][i]){
-            break;
-          }
-          
-        }
-        for(p=0; p < j - top; p++){
-          k--;
-          f[k][i] = f[k-gap][i];
-          f[k-gap][i] = 0;
-        }
-        top += gap;
-        
-      }
-    
-    }
-    
-    
-    
-    
-  }
-  return flag;
-  // 1 -> 블럭 떨어짐
-  
-}
+	int i,flag,j,top,k,gap,p;
+	flag = 0;
 
+	for(i=0; i < WIDTH ; i++){
+		top = 0;
+		gap = 0;
+		for(j=0; j < HEIGHT ; j++){
+			if(f[j][i]&&!top){
+				top = j;
+			}
+			if(!f[j][i] && top){
+				flag = 1;
+				gap = 0;
+				for(k = j ; k < HEIGHT ; k++,gap++){
+					if(f[k][i]){
+						break;
+					}
+
+				}
+				for(p=0; p < j - top; p++){
+					k--;
+					f[k][i] = f[k-gap][i];
+					f[k-gap][i] = 0;
+				}
+				top += gap;
+
+			}
+
+		}
+
+
+
+
+	}
+	return flag;
+	// 1 -> 블럭 떨어짐
+
+}
+// 뿌요가 터질 가능성이 있는지 확인하는 함수
 int Chain(char f[HEIGHT][WIDTH], int y, int x, char puyo){
-  for(int i = 0; i < 4; i++){
-    int nx = dx[i] + x;
-    int ny = dy[i] + y;
-    
-    if(0<= nx && nx < 6 && 0 <= ny && ny < 12){
-      if(!visited[ny][nx] && f[ny][nx] == puyo){
-        list.push_back(make_pair(ny,nx));
-        visited[ny][nx] = 1;
-        Chain(f, ny, nx, puyo);
-      }
-    }
-  }
+	for(int i = 0; i < 4; i++){
+		int nx = dx[i] + x;
+		int ny = dy[i] + y;
+
+		if(0<= nx && nx < 6 && 0 <= ny && ny < 12){
+			if(!visited[ny][nx] && f[ny][nx] == puyo){
+				list.push_back(make_pair(ny,nx));
+				visited[ny][nx] = 1;
+				Chain(f, ny, nx, puyo);
+			}
+		}
+	}
 }
 
 void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotate, int blockY, int blockX){
 	DrawField(); // 고쳐야되나??
 	DrawBlockWithFeatures(blockY,blockX,currentBlock,blockRotate);
-	
+
 }
 
 int PuyoBomb(char f[HEIGHT][WIDTH]){
-  
-  int flag = 0;
-  memset(visited,0,sizeof(visited));
-  for(int i ; i < 12; i++){
-    for( int j = 0; j < 6 ;j++){
-      if(!visited[i][j] && f[i][j]){
-        //list.push_back(make_pair(i,j));
-        Chain(f,i,j,f[i][j]);
-        
-        if(list.size() >= 4){
-          flag = 1;
-          for(int k = 0 ; k < list.size() ; k++){
-            f[list[k].first][list[k].second] = 0;
-          }
-        }
-        list.clear();
 
-      }
-    }
-  }
- 
- return flag;
+	int flag = 0;
+	memset(visited,0,sizeof(visited));
+	for(int i ; i < 12; i++){
+		for( int j = 0; j < 6 ;j++){
+			if(!visited[i][j] && f[i][j]){
+				//list.push_back(make_pair(i,j));
+				Chain(f,i,j,f[i][j]);
+
+				if(list.size() >= 4){
+					flag = 1;
+					for(int k = 0 ; k < list.size() ; k++){
+						f[list[k].first][list[k].second] = 0;
+					}
+				}
+				list.clear();
+
+			}
+		}
+	}
+
+	return flag;
 
 
-  
+
 }
 
 void BlockDown(int sig){
 	// user code
-  if(!cur_id)
-    return;
-  
-  
+
+    int chain_flag = 0;
+	if(process_flag)
+        return;
+
 	if(CheckToMove(field,nextBlock[0],blockRotate, blockY+1, blockX)){
-    
+        process_flag=0;
 		blockY++;
 		DrawField();
 		DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
 	}
 	else{
-    cur_id = 0;
+        process_flag = 1;
+		//cur_id = 0;
 		if(blockY == -1)
 			gameOver = 1;
 		score += AddBlockToField(field,nextBlock[0],blockRotate,blockY,blockX);
-    //sleep(1);
-    CheckFall(field);
-    
-    while(1){
-      if(!PuyoBomb(field))
-        break;
-      else{
-        CheckFall(field);
-        DrawField();
-        sleep(2);
-        
-      }
-    }
-    sleep(1);
+		//sleep(1);
+		CheckFall(field);
+
+		while(1){
+            chain_flag = PuyoBomb(field);
+			if(!chain_flag)
+                break;
+            CheckFall(field);
+            DrawField();
+            sleep(1);
+
+		}
+
+		//sleep(1);
+
 		//score += DeleteLine(field);
 		nextBlock[0] = nextBlock[1];
 		nextBlock[1] = rand() % 10;
@@ -401,22 +408,22 @@ void BlockDown(int sig){
 		DrawNextBlock(nextBlock);
 		DrawField();
 		PrintScore(score);
-    
-    cur_id = pthread_self();
 
 
-		
+
+
 	}
-  
+
+	process_flag = 0;
 	timed_out = 0;
 
-		
+
 	//강의자료 p26-27의 플로우차트를 참고한다.
 }
 
 int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
 	// user code
-  
+
 	int i,j,touch=0;
 	for(i=0; i < BLOCK_HEIGHT ; i++){
 		for(j=0 ; j < BLOCK_WIDTH ; j++){
@@ -429,17 +436,17 @@ int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int 
 	}
 	return touch*10;
 	//Block이 추가된 영역의 필드값을 바꾼다.
-  
+
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
 
 void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate){
-  
+
 	DrawBlock(y,x,blockID,blockRotate,' ');
 	//DrawShadow(y,x,blockID,blockRotate);
-  
+
 
 }
 
