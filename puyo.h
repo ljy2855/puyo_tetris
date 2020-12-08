@@ -14,6 +14,8 @@
 #include <string.h>
 #include <unistd.h> 
 #include <pthread.h>
+#include <sys/wait.h>
+
 using namespace std;
 
 #define RED 1
@@ -202,6 +204,7 @@ int score;			/* 점수가 저장*/
 int gameOver=0;			/* 게임이 종료되면 1로 setting된다.*/
 int timed_out;
 int process_flag=0;
+int num_of_chains;
 
 /***********************************************************
  *	테트리스의 모든  global 변수를 초기화 해준다.
@@ -307,6 +310,8 @@ int CheckFall(char f[HEIGHT][WIDTH]);
 
 int Chain(char f[HEIGHT][WIDTH], int y, int x, int puyo);
 
+
+int CalScore(int num_of_puyo, int puyo[], int num_of_color);
 
 int PuyoBomb(char f[HEIGHT][WIDTH]);
 

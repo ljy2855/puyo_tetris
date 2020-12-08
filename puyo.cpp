@@ -47,6 +47,7 @@ void InitTetris(){
 	score=0;	
 	gameOver=0;
 	timed_out=0;
+    num_of_chains = 0;
 
 
 	DrawOutline();
@@ -222,8 +223,9 @@ void play(){
 
 
 		command = GetCommand();
-        move(14,2);
-        printw("%d",process_flag);
+        //move(14,2);
+        //printw("%d",process_flag);
+
 		if(ProcessCommand(command)==QUIT){
 			alarm(0);
 			DrawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
@@ -338,24 +340,39 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
 int PuyoBomb(char f[HEIGHT][WIDTH]){
 
 	int flag = 0;
+    int color_count = 0;
+    int num_of_all_puyo = 0;
+    int puyo[4];
+    
 	memset(visited,0,sizeof(visited));
+    memset(puyo,0,sizeof(puyo));
 	for(int i ; i < 12; i++){
 		for( int j = 0; j < 6 ;j++){
 			if(!visited[i][j] && f[i][j]){
 				//list.push_back(make_pair(i,j));
+                
 				Chain(f,i,j,f[i][j]);
 
 				if(list.size() >= 4){
+                    color_count++;
 					flag = 1;
+                    num_of_all_puyo += list.size();
+                    puyo[f[list[0].first][list[0].second]]++;
+              
 					for(int k = 0 ; k < list.size() ; k++){
 						f[list[k].first][list[k].second] = 0;
 					}
+                   
 				}
 				list.clear();
 
 			}
 		}
 	}
+    if(flag){
+        num_of_chains++;
+        score += CalScore(num_of_all_puyo,puyo,color_count);
+    }
 
 	return flag;
 
@@ -363,9 +380,90 @@ int PuyoBomb(char f[HEIGHT][WIDTH]){
 
 }
 
+int CalScore(int num_of_puyo, int puyo[], int num_of_color){
+    int chain_score;
+    int connect_score;
+    int color_score;
+    
+    switch(num_of_chains){
+        case  1:
+            chain_score = 0;
+            break;
+        case 2:
+            chain_score = 8;
+            break;
+        case 3:
+            chain_score = 16;
+            break;
+        case  4:
+            chain_score = 32;
+            break;
+        case 5:
+            chain_score = 64;
+            break;
+        case 6:
+            chain_score = 96;
+            break;
+         case  7:
+            chain_score = 128;
+            break;
+        case 8:
+            chain_score = 160;
+            break;
+        case 9:
+            chain_score = 192;
+            break;
+    }
+    switch(num_of_color){
+        case 1:
+            color_score =0;
+            break;
+        case 2:
+            color_score = 3;
+            break;
+        case 3:
+            color_score = 6;
+            break;
+        case 4:
+            color_score = 12;
+            break;
+    }
+    for(int i = 0; i < 4 ; i++){
+        switch(puyo[i]){
+            case 0:
+                break;
+            case 4:
+                connect_score += 0;
+                break;
+            case 5:
+                connect_score += 2;
+                break;
+            case 6:
+                connect_score += 3;
+                break;
+            case 7:
+                connect_score += 4;
+                break;
+            case 8:
+                connect_score += 5;
+                break;
+            case 9:
+                connect_score += 6;
+                break;
+            case 10:
+                connect_score += 7;
+            default:
+                connect_score += 10;
+        }
+    }
+    return num_of_puyo *( chain_score + connect_score + color_score) *10;
+}
+
 void BlockDown(int sig){
 	// user code
 
+    //move(15,2);
+    //printw("%d %d",getpid(),getppid());
     int chain_flag = 0;
 	if(process_flag)
         return;
@@ -375,8 +473,10 @@ void BlockDown(int sig){
 		blockY++;
 		DrawField();
 		DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
+        
 	}
 	else{
+        num_of_chains = 0;
         process_flag = 1;
 		//cur_id = 0;
 		if(blockY == -1)
@@ -389,9 +489,16 @@ void BlockDown(int sig){
             chain_flag = PuyoBomb(field);
 			if(!chain_flag)
                 break;
+            
+            //num_of_chains++;
+            move(16,2);
+            printw("chain : %d",num_of_chains);
             CheckFall(field);
             DrawField();
+            
             sleep(1);
+            
+            
 
 		}
 
@@ -408,13 +515,14 @@ void BlockDown(int sig){
 		DrawNextBlock(nextBlock);
 		DrawField();
 		PrintScore(score);
+        
+        
 
 
 
 
 	}
-
-	process_flag = 0;
+    process_flag = 0;
 	timed_out = 0;
 
 
