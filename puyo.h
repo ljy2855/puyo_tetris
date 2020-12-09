@@ -284,7 +284,7 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
  *	input	: none
  *	return	: none
  ***********************************************************/
-void DrawField();
+void DrawField(char f[HEIGHT][WIDTH]);
 
 /***********************************************************
  *	떨어지는 블럭을 field에 더해준다.

@@ -51,7 +51,7 @@ void InitTetris(){
 
 
 	DrawOutline();
-	DrawField();
+	DrawField(field);
 	DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
 	DrawNextBlock(nextBlock);
 	PrintScore(score);
@@ -132,13 +132,13 @@ int ProcessCommand(int command){
 	return ret;	
 }
 
-void DrawField(){
+void DrawField(char f[HEIGHT][WIDTH]){
 	int i,j;
 	for(j=0;j<HEIGHT;j++){
 		move(j+1,1);
 		for(i=0;i<WIDTH;i++){
 			if(field[j][i]){
-				attron(COLOR_PAIR(field[j][i]));
+				attron(COLOR_PAIR(f[j][i]));
 				attron(A_REVERSE);
 				printw(" ");
 				attroff(A_REVERSE);
@@ -216,15 +216,13 @@ void play(){
 	sigaction(SIGALRM,&act,&oact);
 	InitTetris();
 	do{
-		if(timed_out==0){
+		if(timed_out==0 && !process_flag){
 			alarm(1);
 			timed_out=1;
 		}
 
 
 		command = GetCommand();
-        //move(14,2);
-        //printw("%d",process_flag);
 
 		if(ProcessCommand(command)==QUIT){
 			alarm(0);
@@ -332,7 +330,7 @@ int Chain(char f[HEIGHT][WIDTH], int y, int x, char puyo){
 }
 
 void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotate, int blockY, int blockX){
-	DrawField(); // 고쳐야되나??
+	DrawField(f); // 고쳐야되나??
 	DrawBlockWithFeatures(blockY,blockX,currentBlock,blockRotate);
 
 }
@@ -344,13 +342,15 @@ int PuyoBomb(char f[HEIGHT][WIDTH]){
     int num_of_all_puyo = 0;
     int puyo[4];
     
-	memset(visited,0,sizeof(visited));
+    list.clear();
+    for(int i = 0 ; i < HEIGHT ; i++)
+	    memset(visited[i],0,sizeof(int)*WIDTH);
     memset(puyo,0,sizeof(puyo));
-	for(int i ; i < 12; i++){
+	for(int i = 0 ; i < 12; i++){
 		for( int j = 0; j < 6 ;j++){
 			if(!visited[i][j] && f[i][j]){
-				//list.push_back(make_pair(i,j));
-                
+				list.push_back(make_pair(i,j));
+                visited[i][j] = 1;
 				Chain(f,i,j,f[i][j]);
 
 				if(list.size() >= 4){
@@ -366,13 +366,22 @@ int PuyoBomb(char f[HEIGHT][WIDTH]){
 				}
 				list.clear();
 
-			}
+			}   
 		}
 	}
+    CheckFall(f);
+    DrawField(f);
     if(flag){
         num_of_chains++;
         score += CalScore(num_of_all_puyo,puyo,color_count);
+        move(15,2);
+        printw("chain : %d",num_of_chains);
+        PuyoBomb(f);
+  
     }
+    
+    
+
 
 	return flag;
 
@@ -380,6 +389,80 @@ int PuyoBomb(char f[HEIGHT][WIDTH]){
 
 }
 
+
+void BlockDown(int sig){
+	// user code
+
+    int chain_flag = 0;
+	if(process_flag)
+        return;
+
+	if(CheckToMove(field,nextBlock[0],blockRotate, blockY+1, blockX)){
+        process_flag=0;
+		blockY++;
+		DrawField(field);
+		DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
+        
+	}
+	else{
+        alarm(10);
+        num_of_chains = 0;
+        process_flag = 1;
+
+		if(blockY == -1)
+			gameOver = 1;
+		AddBlockToField(field,nextBlock[0],blockRotate,blockY,blockX);
+
+		CheckFall(field);
+
+        PuyoBomb(field);
+
+		nextBlock[0] = nextBlock[1];
+		nextBlock[1] = rand() % 10;
+
+		blockRotate = 0;
+		blockY = -1;
+		blockX = WIDTH/2 -2;
+
+		DrawNextBlock(nextBlock);
+		DrawField(field);
+		PrintScore(score);
+        
+
+	}
+    process_flag = 0;
+	timed_out = 0;
+    
+
+	//강의자료 p26-27의 플로우차트를 참고한다.
+}
+
+int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
+	// user code
+
+	int i,j,touch=0;
+	for(i=0; i < BLOCK_HEIGHT ; i++){
+		for(j=0 ; j < BLOCK_WIDTH ; j++){
+			if(block[currentBlock][blockRotate][i][j]){
+				f[i+blockY][j+blockX] = block[currentBlock][blockRotate][i][j];
+			}
+		}
+	}
+	return 0;
+	//Block이 추가된 영역의 필드값을 바꾼다.
+
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+
+void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate){
+
+	DrawBlock(y,x,blockID,blockRotate,' ');
+	//DrawShadow(y,x,blockID,blockRotate);
+
+
+}
 int CalScore(int num_of_puyo, int puyo[], int num_of_color){
     int chain_score;
     int connect_score;
@@ -431,6 +514,7 @@ int CalScore(int num_of_puyo, int puyo[], int num_of_color){
     for(int i = 0; i < 4 ; i++){
         switch(puyo[i]){
             case 0:
+                connect_score += 0;
                 break;
             case 4:
                 connect_score += 0;
@@ -457,104 +541,5 @@ int CalScore(int num_of_puyo, int puyo[], int num_of_color){
         }
     }
     return num_of_puyo *( chain_score + connect_score + color_score) *10;
-}
-
-void BlockDown(int sig){
-	// user code
-
-    //move(15,2);
-    //printw("%d %d",getpid(),getppid());
-    int chain_flag = 0;
-	if(process_flag)
-        return;
-
-	if(CheckToMove(field,nextBlock[0],blockRotate, blockY+1, blockX)){
-        process_flag=0;
-		blockY++;
-		DrawField();
-		DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
-        
-	}
-	else{
-        num_of_chains = 0;
-        process_flag = 1;
-		//cur_id = 0;
-		if(blockY == -1)
-			gameOver = 1;
-		score += AddBlockToField(field,nextBlock[0],blockRotate,blockY,blockX);
-		//sleep(1);
-		CheckFall(field);
-
-		while(1){
-            chain_flag = PuyoBomb(field);
-			if(!chain_flag)
-                break;
-            
-            //num_of_chains++;
-            move(16,2);
-            printw("chain : %d",num_of_chains);
-            CheckFall(field);
-            DrawField();
-            
-            sleep(1);
-            
-            
-
-		}
-
-		//sleep(1);
-
-		//score += DeleteLine(field);
-		nextBlock[0] = nextBlock[1];
-		nextBlock[1] = rand() % 10;
-
-		blockRotate = 0;
-		blockY = -1;
-		blockX = WIDTH/2 -2;
-
-		DrawNextBlock(nextBlock);
-		DrawField();
-		PrintScore(score);
-        
-        
-
-
-
-
-	}
-    process_flag = 0;
-	timed_out = 0;
-
-
-	//강의자료 p26-27의 플로우차트를 참고한다.
-}
-
-int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
-	// user code
-
-	int i,j,touch=0;
-	for(i=0; i < BLOCK_HEIGHT ; i++){
-		for(j=0 ; j < BLOCK_WIDTH ; j++){
-			if(block[currentBlock][blockRotate][i][j]){
-				f[i+blockY][j+blockX] = block[currentBlock][blockRotate][i][j];
-				if(blockY + i == 21)
-					touch++;
-			}
-		}
-	}
-	return touch*10;
-	//Block이 추가된 영역의 필드값을 바꾼다.
-
-}
-
-///////////////////////////////////////////////////////////////////////////
-
-
-void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate){
-
-	DrawBlock(y,x,blockID,blockRotate,' ');
-	//DrawShadow(y,x,blockID,blockRotate);
-
-
 }
 
