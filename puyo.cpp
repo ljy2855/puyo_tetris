@@ -32,7 +32,6 @@ void InitTetris(){
 		for(i=0;i<WIDTH;i++)
 			field[j][i]=0;
 
-	cur_id = pthread_self();
 	start_color();
 	init_pair(1,COLOR_RED,COLOR_BLACK);
 	init_pair(2,COLOR_BLUE,COLOR_BLACK);
@@ -47,7 +46,7 @@ void InitTetris(){
 	score=0;	
 	gameOver=0;
 	timed_out=0;
-    num_of_chains = 0;
+	num_of_chains = 0;
 
 
 	DrawOutline();
@@ -103,8 +102,8 @@ int GetCommand(){
 int ProcessCommand(int command){
 	int ret=1;
 	int drawFlag=0;
-    if(process_flag)
-        return NOTHING;
+	if(process_flag)
+		return NOTHING;
 	switch(command){
 		case QUIT:
 			ret = QUIT;
@@ -221,7 +220,6 @@ void play(){
 			timed_out=1;
 		}
 
-
 		command = GetCommand();
 
 		if(ProcessCommand(command)==QUIT){
@@ -244,7 +242,7 @@ void play(){
 	printw("GameOver!!");
 	refresh();
 	getch();
-	//newRank(score);
+
 }
 
 char menu(){
@@ -255,7 +253,7 @@ char menu(){
 	return wgetch(stdscr);
 }
 
-/////////////////////////첫주차 실습에서 구현해야 할 함수/////////////////////////
+
 
 int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
 	int i,j;
@@ -313,8 +311,8 @@ int CheckFall(char f[HEIGHT][WIDTH]){
 	// 1 -> 블럭 떨어짐
 
 }
-// 뿌요가 터질 가능성이 있는지 확인하는 함수
-int Chain(char f[HEIGHT][WIDTH], int y, int x, char puyo){
+
+void Chain(char f[HEIGHT][WIDTH], int y, int x, char puyo){
 	for(int i = 0; i < 4; i++){
 		int nx = dx[i] + x;
 		int ny = dy[i] + y;
@@ -330,84 +328,77 @@ int Chain(char f[HEIGHT][WIDTH], int y, int x, char puyo){
 }
 
 void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotate, int blockY, int blockX){
-	DrawField(f); // 고쳐야되나??
+	DrawField(f); 
 	DrawBlockWithFeatures(blockY,blockX,currentBlock,blockRotate);
 
 }
 
-int PuyoBomb(char f[HEIGHT][WIDTH]){
+void PuyoBomb(char f[HEIGHT][WIDTH]){
+
 
 	int flag = 0;
-    int color_count = 0;
-    int num_of_all_puyo = 0;
-    int puyo[4];
-    
-    list.clear();
-    for(int i = 0 ; i < HEIGHT ; i++)
-	    memset(visited[i],0,sizeof(int)*WIDTH);
-    memset(puyo,0,sizeof(puyo));
+	int color_count = 0;
+	int num_of_all_puyo = 0;
+	int puyo[4];
+
+	list.clear();
+	for(int i = 0 ; i < HEIGHT ; i++)
+		memset(visited[i],0,sizeof(int)*WIDTH);
+	memset(puyo,0,sizeof(puyo));
 	for(int i = 0 ; i < 12; i++){
 		for( int j = 0; j < 6 ;j++){
 			if(!visited[i][j] && f[i][j]){
 				list.push_back(make_pair(i,j));
-                visited[i][j] = 1;
+				visited[i][j] = 1;
 				Chain(f,i,j,f[i][j]);
 
 				if(list.size() >= 4){
-                    color_count++;
+					color_count++;
 					flag = 1;
-                    num_of_all_puyo += list.size();
-                    puyo[f[list[0].first][list[0].second]]++;
-              
+					num_of_all_puyo += list.size();
+					puyo[f[list[0].first][list[0].second]]++;
+
 					for(int k = 0 ; k < list.size() ; k++){
 						f[list[k].first][list[k].second] = 0;
 					}
-                   
+
 				}
 				list.clear();
 
 			}   
 		}
 	}
-    CheckFall(f);
-    DrawField(f);
-    if(flag){
-        num_of_chains++;
-        score += CalScore(num_of_all_puyo,puyo,color_count);
-        move(15,2);
-        printw("chain : %d",num_of_chains);
-        PuyoBomb(f);
-  
-    }
-    
-    
+	CheckFall(f);
+	DrawField(f);
+	if(flag){
+		num_of_chains++;
+		score += CalScore(num_of_all_puyo,puyo,color_count);
+		move(15,2);
+		printw("chain : %d",num_of_chains);
+		PuyoBomb(f);
 
-
-	return flag;
-
+	}
 
 
 }
 
 
 void BlockDown(int sig){
-	// user code
 
-    int chain_flag = 0;
 	if(process_flag)
-        return;
+		return;
 
 	if(CheckToMove(field,nextBlock[0],blockRotate, blockY+1, blockX)){
-        process_flag=0;
+		process_flag=0;
 		blockY++;
 		DrawField(field);
 		DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
-        
+
 	}
 	else{
-        alarm(10);
-        num_of_chains = 0;
-        process_flag = 1;
+		alarm(10);
+		num_of_chains = 0;
+		process_flag = 1;
 
 		if(blockY == -1)
 			gameOver = 1;
@@ -415,7 +406,7 @@ void BlockDown(int sig){
 
 		CheckFall(field);
 
-        PuyoBomb(field);
+		PuyoBomb(field);
 
 		nextBlock[0] = nextBlock[1];
 		nextBlock[1] = rand() % 10;
@@ -427,20 +418,17 @@ void BlockDown(int sig){
 		DrawNextBlock(nextBlock);
 		DrawField(field);
 		PrintScore(score);
-        
+
 
 	}
-    process_flag = 0;
+	process_flag = 0;
 	timed_out = 0;
-    
 
-	//강의자료 p26-27의 플로우차트를 참고한다.
 }
 
 int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
-	// user code
 
-	int i,j,touch=0;
+	int i,j;
 	for(i=0; i < BLOCK_HEIGHT ; i++){
 		for(j=0 ; j < BLOCK_WIDTH ; j++){
 			if(block[currentBlock][blockRotate][i][j]){
@@ -459,87 +447,85 @@ int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int 
 void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate){
 
 	DrawBlock(y,x,blockID,blockRotate,' ');
-	//DrawShadow(y,x,blockID,blockRotate);
-
 
 }
 int CalScore(int num_of_puyo, int puyo[], int num_of_color){
-    int chain_score;
-    int connect_score;
-    int color_score;
-    
-    switch(num_of_chains){
-        case  1:
-            chain_score = 0;
-            break;
-        case 2:
-            chain_score = 8;
-            break;
-        case 3:
-            chain_score = 16;
-            break;
-        case  4:
-            chain_score = 32;
-            break;
-        case 5:
-            chain_score = 64;
-            break;
-        case 6:
-            chain_score = 96;
-            break;
-         case  7:
-            chain_score = 128;
-            break;
-        case 8:
-            chain_score = 160;
-            break;
-        case 9:
-            chain_score = 192;
-            break;
-    }
-    switch(num_of_color){
-        case 1:
-            color_score =0;
-            break;
-        case 2:
-            color_score = 3;
-            break;
-        case 3:
-            color_score = 6;
-            break;
-        case 4:
-            color_score = 12;
-            break;
-    }
-    for(int i = 0; i < 4 ; i++){
-        switch(puyo[i]){
-            case 0:
-                connect_score += 0;
-                break;
-            case 4:
-                connect_score += 0;
-                break;
-            case 5:
-                connect_score += 2;
-                break;
-            case 6:
-                connect_score += 3;
-                break;
-            case 7:
-                connect_score += 4;
-                break;
-            case 8:
-                connect_score += 5;
-                break;
-            case 9:
-                connect_score += 6;
-                break;
-            case 10:
-                connect_score += 7;
-            default:
-                connect_score += 10;
-        }
-    }
-    return num_of_puyo *( chain_score + connect_score + color_score) *10;
+	int chain_score;
+	int connect_score;
+	int color_score;
+
+	switch(num_of_chains){
+		case  1:
+			chain_score = 0;
+			break;
+		case 2:
+			chain_score = 8;
+			break;
+		case 3:
+			chain_score = 16;
+			break;
+		case  4:
+			chain_score = 32;
+			break;
+		case 5:
+			chain_score = 64;
+			break;
+		case 6:
+			chain_score = 96;
+			break;
+		case  7:
+			chain_score = 128;
+			break;
+		case 8:
+			chain_score = 160;
+			break;
+		case 9:
+			chain_score = 192;
+			break;
+	}
+	switch(num_of_color){
+		case 1:
+			color_score =0;
+			break;
+		case 2:
+			color_score = 3;
+			break;
+		case 3:
+			color_score = 6;
+			break;
+		case 4:
+			color_score = 12;
+			break;
+	}
+	for(int i = 0; i < 4 ; i++){
+		switch(puyo[i]){
+			case 0:
+				connect_score += 0;
+				break;
+			case 4:
+				connect_score += 0;
+				break;
+			case 5:
+				connect_score += 2;
+				break;
+			case 6:
+				connect_score += 3;
+				break;
+			case 7:
+				connect_score += 4;
+				break;
+			case 8:
+				connect_score += 5;
+				break;
+			case 9:
+				connect_score += 6;
+				break;
+			case 10:
+				connect_score += 7;
+			default:
+				connect_score += 10;
+		}
+	}
+	return num_of_puyo *( chain_score + connect_score + color_score) *10;
 }
 

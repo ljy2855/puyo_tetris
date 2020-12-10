@@ -13,8 +13,6 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h> 
-#include <pthread.h>
-#include <sys/wait.h>
 
 using namespace std;
 
@@ -186,25 +184,23 @@ const char block[NUM_OF_SHAPE][NUM_OF_ROTATE][BLOCK_HEIGHT][BLOCK_WIDTH] ={
 	}
 };
 
-const int dx[4] = { -1, 0, 1, 0};
+const int dx[4] = { -1, 0, 1, 0};   /* 상하좌우 이동 좌표 */
 const int dy[4] = { 0, -1, 0, 1};
 
-int visited[HEIGHT][WIDTH];
-
-pthread_t cur_id;
+int visited[HEIGHT][WIDTH];     /* 뿌요를 지울때 확인했는지 저장 */
 
 
-vector<pair<int, int> > list;
+vector<pair<int, int> > list;   /* 지워질 뿌요의 좌표를 저장 */
 
 
-char field[HEIGHT][WIDTH];	/* 테트리스의 메인 게임 화면 */
-int nextBlock[BLOCK_NUM];	/* 현재 블럭의 ID와 다음 블럭의 ID들을 저장; [0]: 현재 블럭; [1]: 다음 블럭 */
+char field[HEIGHT][WIDTH];  	/* 테트리스의 메인 게임 화면 */
+int nextBlock[BLOCK_NUM];	    /* 현재 블럭의 ID와 다음 블럭의 ID들을 저장; [0]: 현재 블럭; [1]: 다음 블럭 */
 int blockRotate,blockY,blockX;	/* 현재 블럭의 회전, 블럭의 Y 좌표, 블럭의 X 좌표*/
-int score;			/* 점수가 저장*/
-int gameOver=0;			/* 게임이 종료되면 1로 setting된다.*/
-int timed_out;
-int process_flag=0;
-int num_of_chains;
+int score;			            /* 점수가 저장*/
+int gameOver=0;			        /* 게임이 종료되면 1로 setting된다.*/
+int timed_out;                  /* 알람을 초기화하기 위해 확인하는 변수 */
+int process_flag=0;             /* blockDown 함수가 실행중임을 확인하는 flag */
+int num_of_chains;              /* 현재 연쇄 콤보를 저장 */
 
 /***********************************************************
  *	테트리스의 모든  global 변수를 초기화 해준다.
@@ -306,14 +302,31 @@ int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int 
 
 int CheckFall(char f[HEIGHT][WIDTH]);
 
+/***********************************************************
+ *	연쇄 가능한 상하좌우 뿌요를 탐색한다
+ *  뿌요들의 좌표를 list에 저장한다
+ *	input	: (char[][]) 뿌요의 정보를 포함한 필드, 뿌요의 종류와 좌표
+ *	return	: void
+ ***********************************************************/
 
 
-int Chain(char f[HEIGHT][WIDTH], int y, int x, int puyo);
+void Chain(char f[HEIGHT][WIDTH], int y, int x, int puyo);
 
 
+/***********************************************************
+ *	뿌요가 지워질 때 점수를 계산하여 반환한다.
+ *	input	: 지워진 뿌요의 수, 연쇄 콤보, 색의 종류
+ *	return	: 획득한 점수
+ ***********************************************************/
 int CalScore(int num_of_puyo, int puyo[], int num_of_color);
 
-int PuyoBomb(char f[HEIGHT][WIDTH]);
+/***********************************************************
+ *	뿌요를 지우는 함수 더 이상 지워질 뿌요가 없을 때 까지 반복한다.
+ *	input	: 현재 필드의 정보
+ *	return	: void
+ ***********************************************************/
+
+void PuyoBomb(char f[HEIGHT][WIDTH]);
 
 
 /***********************************************************
