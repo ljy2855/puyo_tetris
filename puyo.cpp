@@ -451,8 +451,9 @@ void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate){
 }
 int CalScore(int num_of_puyo, int puyo[], int num_of_color){
 	int chain_score;
-	int connect_score;
+	int connect_score =0;
 	int color_score;
+    
 
 	switch(num_of_chains){
 		case  1:
