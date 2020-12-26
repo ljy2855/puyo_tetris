@@ -13,13 +13,17 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h> 
-
+#include <sys/wait.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <pthread.h>
 using namespace std;
 
 #define RED 1
 #define BLUE 2
 #define GREEN 3
 #define PURPLE 4
+#define XBLOCK 'X'
 
 #define WIDTH	6
 #define HEIGHT	12
@@ -34,10 +38,19 @@ using namespace std;
 
 // menu number
 #define MENU_PLAY '1'
+#define MULTI_PLAY '2'
 #define MENU_EXIT '4'
 
 // 사용자 이름의 길이
 #define NAMELEN 16
+
+typedef struct player{
+    int online;
+    char field[HEIGHT][WIDTH];
+    int score;
+} player;
+
+player opPlayer, me;
 
 
 /* [blockShapeID][# of rotate][][]*/
@@ -193,6 +206,7 @@ int visited[HEIGHT][WIDTH];     /* 뿌요를 지울때 확인했는지 저장 */
 vector<pair<int, int> > list;   /* 지워질 뿌요의 좌표를 저장 */
 
 
+int multi = 0;
 char field[HEIGHT][WIDTH];  	/* 테트리스의 메인 게임 화면 */
 int nextBlock[BLOCK_NUM];	    /* 현재 블럭의 ID와 다음 블럭의 ID들을 저장; [0]: 현재 블럭; [1]: 다음 블럭 */
 int blockRotate,blockY,blockX;	/* 현재 블럭의 회전, 블럭의 Y 좌표, 블럭의 X 좌표*/
@@ -201,6 +215,11 @@ int gameOver=0;			        /* 게임이 종료되면 1로 setting된다.*/
 int timed_out;                  /* 알람을 초기화하기 위해 확인하는 변수 */
 int process_flag=0;             /* blockDown 함수가 실행중임을 확인하는 flag */
 int num_of_chains;              /* 현재 연쇄 콤보를 저장 */
+int sock;
+int attack_flag;
+int op_score;
+int attack_score;
+pthread_mutex_t mutx;
 
 /***********************************************************
  *	테트리스의 모든  global 변수를 초기화 해준다.
@@ -399,6 +418,17 @@ void play();
  ***********************************************************/
 char menu();
 
+void * send_data(void * arg);
+void * recv_data(void * arg);
+void error_handling(char * msg);
+void DrawOpField();
 
+void connect_server();
+
+void printOpScore();
+
+void DeleteXBlock(int y, int x);
+
+void Attack(int s);
 
 #endif
