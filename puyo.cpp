@@ -434,11 +434,13 @@ void PuyoBomb(char f[HEIGHT][WIDTH]){
 	}
 	CheckFall(f);
 	DrawField(f);
+    refresh();
 	if(flag){
 		num_of_chains++;
 		score += CalScore(num_of_all_puyo,puyo,color_count);
 		move(15,2);
 		printw("chain : %d",num_of_chains);
+        usleep(300000);
 		PuyoBomb(f);
 
 	}
@@ -663,7 +665,7 @@ void * send_data(void * arg){
         memcpy(me.field,field,sizeof(field));
         me.score = score;
         write(socket,(player *)&me,sizeof(me));
-        usleep(100000);
+        usleep(500000);
     }
     return NULL;
 }
@@ -672,6 +674,7 @@ void * recv_data(void * arg){
     while(1){
         read(socket,(player*)&opPlayer,sizeof(opPlayer));
         DrawOpField();
+        refresh();
         printOpScore();
         if(opPlayer.score != op_score && !attack_flag){
             attack_flag = 1;
@@ -695,11 +698,18 @@ void DrawOpField(){
 		move(j+1,1+WIDTH + 17);
 		for(i=0;i<WIDTH;i++){
 			if(opPlayer.field[j][i]){
-				attron(COLOR_PAIR(opPlayer.field[j][i]));
-				attron(A_REVERSE);
-				printw(" ");
-				attroff(A_REVERSE);
-				attron(COLOR_PAIR(5));
+                if(opPlayer.field[j][i] == XBLOCK){
+                    attron(A_REVERSE);
+				    printw("X");
+				    attroff(A_REVERSE);
+                }
+                else{
+                    attron(COLOR_PAIR(opPlayer.field[j][i]));
+                    attron(A_REVERSE);
+                    printw(" ");
+                    attroff(A_REVERSE);
+                    attron(COLOR_PAIR(5));
+                }
 			}
 			else printw(" ");
 		}
