@@ -15,7 +15,7 @@ int main(){
 		clear();
 		switch(menu()){
 			case MENU_PLAY: play(); break;
-            case MULTI_PLAY: multi = 1; play(); break;
+			case MULTI_PLAY: multi = 1; play(); break;
 			case MENU_EXIT: exit=1; break;
 			default: break;
 		}
@@ -28,18 +28,18 @@ int main(){
 
 void InitTetris(){
 	int i,j;
-    
-    if(multi){
-        pthread_mutex_init(&mutx, NULL);
-        connect_server();
-    }
+
+	if(multi){
+		pthread_mutex_init(&mutx, NULL);
+		connect_server();
+	}
 	for(j=0;j<HEIGHT;j++)
 		for(i=0;i<WIDTH;i++)
 			field[j][i]=0;
-    
-    opPlayer.online = 0;
-    memset(opPlayer.field,0,sizeof(opPlayer.field));
-    opPlayer.score = 0;
+
+	opPlayer.online = 0;
+	memset(opPlayer.field,0,sizeof(opPlayer.field));
+	opPlayer.score = 0;
 
 	start_color();
 	init_pair(1,COLOR_RED,COLOR_BLACK);
@@ -56,17 +56,17 @@ void InitTetris(){
 	gameOver=0;
 	timed_out=0;
 	num_of_chains = 0;
-    op_score = 0;
-    attack_flag = 0;
-    attack_score = 0;
-    if(multi){
-        while(1){
-            if(opPlayer.online)
-                break;
-            sleep(1);
-            
-        }
-    }
+	op_score = 0;
+	attack_flag = 0;
+	attack_score = 0;
+	if(multi){
+		while(1){
+			if(opPlayer.online)
+				break;
+			sleep(1);
+
+		}
+	}
 
 
 	DrawOutline();
@@ -74,8 +74,8 @@ void InitTetris(){
 	DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
 	DrawNextBlock(nextBlock);
 	PrintScore(score);
-    
-    
+
+
 
 }
 
@@ -88,13 +88,13 @@ void DrawOutline(){
 	move(2,WIDTH+6);
 	printw("NEXT BLOCK");
 	DrawBox(3,WIDTH+6,4,8);
-    
-    if(multi){
-        DrawBox(0,WIDTH + 17, HEIGHT, WIDTH);
-        move(9,WIDTH+ 30);
-        printw("SCORE");
-        DrawBox(10,WIDTH+30,1,8);   
-    }
+
+	if(multi){
+		DrawBox(0,WIDTH + 17, HEIGHT, WIDTH);
+		move(9,WIDTH+ 30);
+		printw("SCORE");
+		DrawBox(10,WIDTH+30,1,8);   
+	}
 	/* score를 보여주는 공간의 태두리를 그린다.*/
 	move(9,WIDTH+6);
 	printw("SCORE");
@@ -103,7 +103,7 @@ void DrawOutline(){
 
 int GetCommand(){
 	int command;
-	command = wgetch(stdscr);
+	command = getch();
 	switch(command){
 		case KEY_UP:
 			break;
@@ -165,19 +165,19 @@ void DrawField(char f[HEIGHT][WIDTH]){
 		move(j+1,1);
 		for(i=0;i<WIDTH;i++){
 			if(field[j][i]){
-                if(field[j][i] == XBLOCK){
-                    attron(A_REVERSE);
-                    printw("X");
-                    attroff(A_REVERSE);
-                }
-                else{
-                    attron(COLOR_PAIR(f[j][i]));
-                    attron(A_REVERSE);
-                    printw(" ");
-                    attroff(A_REVERSE);
-                    attron(COLOR_PAIR(5));
-                }
-            }
+				if(field[j][i] == XBLOCK){
+					attron(A_REVERSE);
+					printw("X");
+					attroff(A_REVERSE);
+				}
+				else{
+					attron(COLOR_PAIR(f[j][i]));
+					attron(A_REVERSE);
+					printw(" ");
+					attroff(A_REVERSE);
+					attron(COLOR_PAIR(5));
+				}
+			}
 			else printw(" ");
 		}
 	}
@@ -189,8 +189,8 @@ void PrintScore(int score){
 	printw("%8d",score);
 }
 void printOpScore(){
-    move(11,WIDTH+31);
-    printw("%8d",opPlayer.score);
+	move(11,WIDTH+31);
+	printw("%8d",opPlayer.score);
 }
 
 void DrawNextBlock(int *nextBlock){
@@ -253,9 +253,9 @@ void play(){
 	act.sa_handler = BlockDown;
 	sigaction(SIGALRM,&act,&oact);
 	InitTetris();
-    
-    
-    
+
+
+
 	do{
 		if(timed_out==0 && !process_flag){
 			alarm(1);
@@ -271,40 +271,40 @@ void play(){
 			printw("Good-bye!!");
 			refresh();
 			getch();
-            if(multi){
-                pthread_mutex_lock(&mutx);
-                me.online = 0;
-                pthread_mutex_unlock(&mutx);
-                write(sock,(player *)&me,sizeof(me));
-                sleep(1);
-                close(sock);
-                
-            }
+			if(multi){
+				pthread_mutex_lock(&mutx);
+				me.online = 0;
+				pthread_mutex_unlock(&mutx);
+				write(sock,(player *)&me,sizeof(me));
+				sleep(1);
+				close(sock);
+
+			}
 			return;
 
 		}
-        if(multi&&!opPlayer.online)
-            break;
+		if(multi&&!opPlayer.online)
+			break;
 	}while(!gameOver);
 
 	alarm(0);
 	getch();
 	DrawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
-    if(multi){
-        move(HEIGHT/2,WIDTH/2-4);
-	    printw("Other player exit!!");
-        pthread_mutex_lock(&mutx);
-        me.online = 0;
-        pthread_mutex_unlock(&mutx);
-        write(sock,(player *)&me,sizeof(me));
-        
-        close(sock);
-    }
-    else{
-        move(HEIGHT/2,WIDTH/2-4);
-	    printw("GameOver!!");
-    }
-    refresh();
+	if(multi){
+		move(HEIGHT/2,WIDTH/2-4);
+		printw("Other player exit!!");
+		pthread_mutex_lock(&mutx);
+		me.online = 0;
+		pthread_mutex_unlock(&mutx);
+		write(sock,(player *)&me,sizeof(me));
+
+		close(sock);
+	}
+	else{
+		move(HEIGHT/2,WIDTH/2-4);
+		printw("GameOver!!");
+	}
+	refresh();
 	getch();
 
 }
@@ -423,7 +423,7 @@ void PuyoBomb(char f[HEIGHT][WIDTH]){
 
 					for(int k = 0 ; k < list.size() ; k++){
 						f[list[k].first][list[k].second] = 0;
-                        DeleteXBlock(list[k].first,list[k].second);
+						DeleteXBlock(list[k].first,list[k].second);
 					}
 
 				}
@@ -434,13 +434,13 @@ void PuyoBomb(char f[HEIGHT][WIDTH]){
 	}
 	CheckFall(f);
 	DrawField(f);
-    refresh();
+	refresh();
 	if(flag){
 		num_of_chains++;
 		score += CalScore(num_of_all_puyo,puyo,color_count);
 		move(15,2);
 		printw("chain : %d",num_of_chains);
-        usleep(300000);
+		usleep(300000);
 		PuyoBomb(f);
 
 	}
@@ -449,16 +449,16 @@ void PuyoBomb(char f[HEIGHT][WIDTH]){
 }
 
 void DeleteXBlock(int y, int x){
-    int ny,nx,i;
-    for(i=0 ; i < 4 ; i++){
-        ny = y + dy[i];
-        nx = x + dx[i];
-        if(ny >= 0 && ny < HEIGHT && nx >= 0 && nx < WIDTH){
-            if(field[ny][nx] == XBLOCK){
-                field[ny][nx] = 0;
-            }
-        }
-    }
+	int ny,nx,i;
+	for(i=0 ; i < 4 ; i++){
+		ny = y + dy[i];
+		nx = x + dx[i];
+		if(ny >= 0 && ny < HEIGHT && nx >= 0 && nx < WIDTH){
+			if(field[ny][nx] == XBLOCK){
+				field[ny][nx] = 0;
+			}
+		}
+	}
 }
 
 void BlockDown(int sig){
@@ -493,8 +493,8 @@ void BlockDown(int sig){
 		blockY = -1;
 		blockX = WIDTH/2 -2;
 
-        Attack(attack_score);
-        CheckFall(field);
+		Attack(attack_score);
+		CheckFall(field);
 		DrawNextBlock(nextBlock);
 		DrawField(field);
 		PrintScore(score);
@@ -508,29 +508,29 @@ void BlockDown(int sig){
 
 }
 void Attack(int s){
-    if(!attack_flag)
-        return;
-    int block_cnt,i,j,div,re;
-    
-    block_cnt = attack_score / 200;
-    div = block_cnt / WIDTH;
-    re = block_cnt % WIDTH;
-    for(i = 0 ; i < div ; i++){
-        for(j = 0 ; j < WIDTH ; j++)
-            field[i][j] = XBLOCK;
-    }
-    for( j = 0; j < re ; j++){
-        int x = rand() % WIDTH;
-        if(field[i][x] == 0){
-            field[i][x] = XBLOCK;
-        }
-        else
-            --j;
-        
-    }
-    attack_flag = 0;
-    return;
-    
+	if(!attack_flag)
+		return;
+	int block_cnt,i,j,div,re;
+
+	block_cnt = attack_score / 200;
+	div = block_cnt / WIDTH;
+	re = block_cnt % WIDTH;
+	for(i = 0 ; i < div ; i++){
+		for(j = 0 ; j < WIDTH ; j++)
+			field[i][j] = XBLOCK;
+	}
+	for( j = 0; j < re ; j++){
+		int x = rand() % WIDTH;
+		if(field[i][x] == 0){
+			field[i][x] = XBLOCK;
+		}
+		else
+			--j;
+
+	}
+	attack_flag = 0;
+	return;
+
 }
 int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
 
@@ -559,7 +559,7 @@ int CalScore(int num_of_puyo, int puyo[], int num_of_color){
 	int chain_score;
 	int connect_score =0;
 	int color_score;
-    
+
 
 	switch(num_of_chains){
 		case  1:
@@ -637,59 +637,59 @@ int CalScore(int num_of_puyo, int puyo[], int num_of_color){
 }
 
 void connect_server(){
-    struct sockaddr_in serv_addr;
-    pthread_t snd_thread, rcv_thread;
-    void * thread_return;
-    sock = socket(PF_INET,SOCK_STREAM, 0);
-    
-    memset(&serv_addr, 0 , sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(7001);
-    
-    if(connect(sock,(struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
-        error_handling("connect error");
-    
-    me.online = 1;
-    pthread_create(&snd_thread,NULL,send_data, (void*)&sock);
-    pthread_create(&rcv_thread,NULL,recv_data, (void*)&sock);
-    pthread_detach(snd_thread);
-    pthread_detach(rcv_thread);
-    return;
+	struct sockaddr_in serv_addr;
+	pthread_t snd_thread, rcv_thread;
+	void * thread_return;
+	sock = socket(PF_INET,SOCK_STREAM, 0);
+
+	memset(&serv_addr, 0 , sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serv_addr.sin_port = htons(7001);
+
+	if(connect(sock,(struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
+		error_handling("connect error");
+
+	me.online = 1;
+	pthread_create(&snd_thread,NULL,send_data, (void*)&sock);
+	pthread_create(&rcv_thread,NULL,recv_data, (void*)&sock);
+	pthread_detach(snd_thread);
+	pthread_detach(rcv_thread);
+	return;
 }
 
 void * send_data(void * arg){
-    int socket = *((int*)arg);
-    
-    while(1){
-        memcpy(me.field,field,sizeof(field));
-        me.score = score;
-        write(socket,(player *)&me,sizeof(me));
-        usleep(500000);
-    }
-    return NULL;
+	int socket = *((int*)arg);
+
+	while(1){
+		memcpy(me.field,field,sizeof(field));
+		me.score = score;
+		write(socket,(player *)&me,sizeof(me));
+		usleep(500000);
+	}
+	return NULL;
 }
 void * recv_data(void * arg){
-    int socket = *((int*)arg);
-    while(1){
-        read(socket,(player*)&opPlayer,sizeof(opPlayer));
-        DrawOpField();
-        refresh();
-        printOpScore();
-        if(opPlayer.score != op_score && !attack_flag){
-            attack_flag = 1;
-            attack_score = opPlayer.score  - op_score;
-            op_score = opPlayer.score;
-        }
-        
-    }
+	int socket = *((int*)arg);
+	while(1){
+		read(socket,(player*)&opPlayer,sizeof(opPlayer));
+		DrawOpField();
+		refresh();
+		printOpScore();
+		if(opPlayer.score != op_score && !attack_flag){
+			attack_flag = 1;
+			attack_score = opPlayer.score  - op_score;
+			op_score = opPlayer.score;
+		}
+
+	}
 }
 
 void error_handling(char * message){
-    fputs(message,stderr);
-    fputc('\n',stderr);
-    exit(1);
-    
+	fputs(message,stderr);
+	fputc('\n',stderr);
+	exit(1);
+
 }
 
 void DrawOpField(){
@@ -698,18 +698,18 @@ void DrawOpField(){
 		move(j+1,1+WIDTH + 17);
 		for(i=0;i<WIDTH;i++){
 			if(opPlayer.field[j][i]){
-                if(opPlayer.field[j][i] == XBLOCK){
-                    attron(A_REVERSE);
-				    printw("X");
-				    attroff(A_REVERSE);
-                }
-                else{
-                    attron(COLOR_PAIR(opPlayer.field[j][i]));
-                    attron(A_REVERSE);
-                    printw(" ");
-                    attroff(A_REVERSE);
-                    attron(COLOR_PAIR(5));
-                }
+				if(opPlayer.field[j][i] == XBLOCK){
+					attron(A_REVERSE);
+					printw("X");
+					attroff(A_REVERSE);
+				}
+				else{
+					attron(COLOR_PAIR(opPlayer.field[j][i]));
+					attron(A_REVERSE);
+					printw(" ");
+					attroff(A_REVERSE);
+					attron(COLOR_PAIR(5));
+				}
 			}
 			else printw(" ");
 		}
