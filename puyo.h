@@ -206,7 +206,7 @@ int visited[HEIGHT][WIDTH];     /* 뿌요를 지울때 확인했는지 저장 */
 vector<pair<int, int> > list;   /* 지워질 뿌요의 좌표를 저장 */
 
 
-int multi = 0;
+int multi = 0;                  /* 싱글, 멀티인지 확인하는 flag */
 char field[HEIGHT][WIDTH];  	/* 테트리스의 메인 게임 화면 */
 int nextBlock[BLOCK_NUM];	    /* 현재 블럭의 ID와 다음 블럭의 ID들을 저장; [0]: 현재 블럭; [1]: 다음 블럭 */
 int blockRotate,blockY,blockX;	/* 현재 블럭의 회전, 블럭의 Y 좌표, 블럭의 X 좌표*/

@@ -29,19 +29,15 @@ int main(){
 void InitTetris(){
 	int i,j;
 
-	if(multi){
-		pthread_mutex_init(&mutx, NULL);
-		connect_server();
-	}
+    start_color();
+
+    
 	for(j=0;j<HEIGHT;j++)
 		for(i=0;i<WIDTH;i++)
 			field[j][i]=0;
 
-	opPlayer.online = 0;
-	memset(opPlayer.field,0,sizeof(opPlayer.field));
-	opPlayer.score = 0;
 
-	start_color();
+
 	init_pair(1,COLOR_RED,COLOR_BLACK);
 	init_pair(2,COLOR_BLUE,COLOR_BLACK);
 	init_pair(3,COLOR_GREEN,COLOR_BLACK);
@@ -56,10 +52,16 @@ void InitTetris(){
 	gameOver=0;
 	timed_out=0;
 	num_of_chains = 0;
-	op_score = 0;
-	attack_flag = 0;
-	attack_score = 0;
+
 	if(multi){
+        pthread_mutex_init(&mutx, NULL);
+		connect_server();
+        opPlayer.online = 0;
+	    memset(opPlayer.field,0,sizeof(opPlayer.field));
+	    opPlayer.score = 0;
+        op_score = 0;
+	    attack_flag = 0;
+	    attack_score = 0;
 		while(1){
 			if(opPlayer.online)
 				break;
@@ -280,6 +282,7 @@ void play(){
 				close(sock);
 
 			}
+            system("clear");
 			return;
 
 		}
