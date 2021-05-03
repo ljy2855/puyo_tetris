@@ -268,20 +268,20 @@ void play(){
 
 		if(ProcessCommand(command)==QUIT){
 			alarm(0);
-			DrawBox(HEIGHT/2-1,WIDTH/2,1,10);
-			move(HEIGHT/2,WIDTH/2 +2);
-			printw("Good-bye!!");
-			refresh();
-			getch();
 			if(multi){
 				pthread_mutex_lock(&mutx);
 				me.online = 0;
 				pthread_mutex_unlock(&mutx);
 				write(sock,(player *)&me,sizeof(me));
-				sleep(1);
 				close(sock);
 
 			}
+			DrawBox(HEIGHT/2-1,WIDTH/2,1,10);
+			move(HEIGHT/2,WIDTH/2 +2);
+			printw("Good-bye!!");
+			refresh();
+			getch();
+
             system("clear");
 			return;
 
@@ -291,7 +291,6 @@ void play(){
 	}while(!gameOver);
 
 	alarm(0);
-	getch();
 	DrawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
 	if(multi){
 		move(HEIGHT/2,WIDTH/2-4);
@@ -468,6 +467,9 @@ void BlockDown(int sig){
 
 	if(process_flag)
 		return;
+	if(multi){
+		SendPlayerData();
+	}
 
 	if(CheckToMove(field,nextBlock[0],blockRotate, blockY+1, blockX)){
 		process_flag=0;
@@ -654,9 +656,9 @@ void connect_server(){
 		error_handling("connect error");
 
 	me.online = 1;
-	pthread_create(&snd_thread,NULL,send_data, (void*)&sock);
+	SendPlayerData();
 	pthread_create(&rcv_thread,NULL,recv_data, (void*)&sock);
-	pthread_detach(snd_thread);
+	//pthread_detach(snd_thread);
 	pthread_detach(rcv_thread);
 	return;
 }
@@ -675,7 +677,11 @@ void * send_data(void * arg){
 void * recv_data(void * arg){
 	int socket = *((int*)arg);
 	while(1){
+		if(gameOver)
+			break;
 		read(socket,(player*)&opPlayer,sizeof(opPlayer));
+		if(!opPlayer.online)
+			break;
 		DrawOpField();
 		refresh();
 		printOpScore();
@@ -686,6 +692,7 @@ void * recv_data(void * arg){
 		}
 
 	}
+	return NULL;
 }
 
 void error_handling(char * message){
@@ -717,4 +724,12 @@ void DrawOpField(){
 			else printw(" ");
 		}
 	}
+}
+
+void SendPlayerData(){
+	pthread_mutex_lock(&mutx);
+	memcpy(me.field,field,sizeof(field));
+	me.score = score;
+	write(sock,(player *)&me,sizeof(me));
+	pthread_mutex_unlock(&mutx);
 }

@@ -431,4 +431,6 @@ void DeleteXBlock(int y, int x);
 
 void Attack(int s);
 
+void SendPlayerData();
+
 #endif
