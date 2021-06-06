@@ -27,7 +27,7 @@ typedef struct _match{
 void * handle_clnt(void * arg);
 void send_data(int rcv_sock,player play_temp, int len);
 void error_handling(char * msg);
-
+void * rcv_and_snd(void * arg);
 
 int clnt_cnt = 0;
 int waiting_player = 0;
@@ -80,40 +80,28 @@ int main(int argc, char *argv[]){
 }
 
 void * handle_clnt(void * arg){
-    
-    match Match;
-    int data_size =0, i;
+    pthread_t t1, t2;
+    int i;
     pthread_mutex_lock(&mutx);
-    Match.p1_socket = clnt_socks[clnt_cnt-1];
-    Match.p2_socket = clnt_socks[clnt_cnt-2];
-    Match.p1.online = 0;
-    Match.p2.online = 0;
+    int p1_socket_set[2];
+    int p2_socket_set[2];
+    p1_socket_set[0] = clnt_socks[clnt_cnt-1];
+    p1_socket_set[1] = clnt_socks[clnt_cnt-2];
+    p2_socket_set[0] = clnt_socks[clnt_cnt-2];
+    p2_socket_set[1] = clnt_socks[clnt_cnt-1];
     pthread_mutex_unlock(&mutx);
     
-    /*
-    while((data_size = read(clnt_sock,(player *) &play_temp , sizeof(play_temp)))!= 0)
-        send_data(clnt_sock,play_temp,data_size);
-        */
-    while(1){
-        read(Match.p1_socket,(player *) &Match.p1, sizeof(Match.p1));
-        if(!Match.p1.online){
-            send_data(Match.p2_socket,Match.p1,sizeof(Match.p1));
-            break;
-        }
-        read(Match.p2_socket,(player *) &Match.p2, sizeof(Match.p2));
-        if(!Match.p2.online ){
-            send_data(Match.p1_socket,Match.p2,sizeof(Match.p2));
-            break;
-        }
-        send_data(Match.p1_socket,Match.p2,sizeof(Match.p2));
-        send_data(Match.p2_socket,Match.p1,sizeof(Match.p1));
-    }
+    pthread_create(&t1,NULL,rcv_and_snd,(void*) p1_socket_set);
+    pthread_create(&t2,NULL,rcv_and_snd,(void*) p2_socket_set);
+    pthread_join(t1,NULL);
+    pthread_join(t2,NULL);
     usleep(100000);
-    close(Match.p1_socket);
-    close(Match.p2_socket);
+    close(p1_socket_set[0]);
+    close(p1_socket_set[1]);
     pthread_mutex_lock(&mutx);
+    
     for(i=0; i < clnt_cnt ; i++){
-        if(Match.p2_socket == clnt_socks[i]){
+        if(p1_socket_set[1] == clnt_socks[i]){
             while(i <= clnt_cnt - 1){
                 clnt_socks[i] = clnt_socks[i+2];
                 i++;
@@ -127,6 +115,21 @@ void * handle_clnt(void * arg){
     
     return NULL;
 }
+void * rcv_and_snd(void * arg){
+    player temp_data;
+    int rvc_socket;
+    int snd_socket;
+    rvc_socket = ((int*) arg)[0];
+    snd_socket = ((int*) arg)[1];
+    while(1){
+
+        read(rvc_socket,(player *) &temp_data,sizeof(temp_data));
+        send_data(snd_socket,temp_data,sizeof(temp_data));
+        if (!temp_data.online)
+            break;
+    }
+}
+
 void send_data(int rcv_sock,player play_temp, int len){
 
     pthread_mutex_lock(&mutx);
