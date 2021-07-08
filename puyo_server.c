@@ -18,12 +18,6 @@ typedef struct player{
     int score;
 }player;
 
-typedef struct _match{
-    player p1,p2;
-    int p1_socket;
-    int p2_socket;    
-}match;
-
 void * handle_clnt(void * arg);
 void send_data(int rcv_sock,player play_temp, int len);
 void error_handling(char * msg);
