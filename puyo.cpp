@@ -663,17 +663,6 @@ void connect_server(){
 	return;
 }
 
-void * send_data(void * arg){
-	int socket = *((int*)arg);
-
-	while(1){
-		memcpy(me.field,field,sizeof(field));
-		me.score = score;
-		write(socket,(player *)&me,sizeof(me));
-		usleep(500000);
-	}
-	return NULL;
-}
 void * recv_data(void * arg){
 	int socket = *((int*)arg);
 	while(1){
@@ -695,11 +684,9 @@ void * recv_data(void * arg){
 	return NULL;
 }
 
-void error_handling(char * message){
-	fputs(message,stderr);
-	fputc('\n',stderr);
+void error_handling(const string message){
+	cout << message << endl;
 	exit(1);
-
 }
 
 void DrawOpField(){

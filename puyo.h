@@ -418,9 +418,8 @@ void play();
  ***********************************************************/
 char menu();
 
-void * send_data(void * arg);
 void * recv_data(void * arg);
-void error_handling(char * msg);
+void error_handling(const string message);
 void DrawOpField();
 
 void connect_server();
