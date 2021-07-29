@@ -1,3 +1,5 @@
 main
 puyo.o
 /wasm
+puyo_client
+puyo_server
