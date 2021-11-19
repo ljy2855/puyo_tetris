@@ -4,7 +4,7 @@
 
 * 실행 환경 : 리눅스 터미널
 
-https://cocopam.tistory.com/3
+설명 : https://cocopam.tistory.com/3
 # 게임 방법 
 * 테트리스와 동일하게 블럭 쌓기
 
