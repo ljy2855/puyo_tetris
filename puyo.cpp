@@ -697,17 +697,34 @@ int hostname_to_ip(char * hostname , char* ip)
 	return 0;
 }
 
-void * send_data(void * arg){
-	int socket = *((int*)arg);
+int hostname_to_ip(char * hostname , char* ip)
+{
+	int sockfd;  
+	struct addrinfo hints, *servinfo, *p;
+	struct sockaddr_in *h;
+	int rv;
 
-	while(1){
-		memcpy(me.field,field,sizeof(field));
-		me.score = score;
-		write(socket,(player *)&me,sizeof(me));
-		usleep(500000);
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
+	hints.ai_socktype = SOCK_STREAM;
+
+	if ( (rv = getaddrinfo( hostname , "http" , &hints , &servinfo)) != 0) 
+	{
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		return 1;
 	}
-	return NULL;
+
+	// loop through all the results and connect to the first we can
+	for(p = servinfo; p != NULL; p = p->ai_next) 
+	{
+		h = (struct sockaddr_in *) p->ai_addr;
+		strcpy(ip , inet_ntoa( h->sin_addr ) );
+	}
+	
+	freeaddrinfo(servinfo); // all done with this structure
+	return 0;
 }
+
 void * recv_data(void * arg){
 	int socket = *((int*)arg);
 	while(1){
@@ -729,11 +746,9 @@ void * recv_data(void * arg){
 	return NULL;
 }
 
-void error_handling(char * message){
-	fputs(message,stderr);
-	fputc('\n',stderr);
+void error_handling(const string message){
+	cout << message << endl;
 	exit(1);
-
 }
 
 void DrawOpField(){
