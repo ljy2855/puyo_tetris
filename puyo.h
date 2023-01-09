@@ -17,6 +17,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <netdb.h>
 using namespace std;
 
 #define RED 1
@@ -433,4 +434,5 @@ void Attack(int s);
 
 void SendPlayerData();
 
+int hostname_to_ip(char * hostname , char* ip);
 #endif

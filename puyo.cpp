@@ -647,9 +647,15 @@ void connect_server(){
 	void * thread_return;
 	sock = socket(PF_INET,SOCK_STREAM, 0);
 
+	char *hostname = "puyo_server";
+	char ip[100];
+	hostname_to_ip(hostname , ip);
+
 	memset(&serv_addr, 0 , sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	// serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	// serv_addr.sin_addr.s_addr = htonl(gethostbyname("server")->h_addr);
+	serv_addr.sin_addr.s_addr = inet_addr(ip);
 	serv_addr.sin_port = htons(7001);
 
 	if(connect(sock,(struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
@@ -661,6 +667,34 @@ void connect_server(){
 	//pthread_detach(snd_thread);
 	pthread_detach(rcv_thread);
 	return;
+}
+
+int hostname_to_ip(char * hostname , char* ip)
+{
+	int sockfd;  
+	struct addrinfo hints, *servinfo, *p;
+	struct sockaddr_in *h;
+	int rv;
+
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
+	hints.ai_socktype = SOCK_STREAM;
+
+	if ( (rv = getaddrinfo( hostname , "http" , &hints , &servinfo)) != 0) 
+	{
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		return 1;
+	}
+
+	// loop through all the results and connect to the first we can
+	for(p = servinfo; p != NULL; p = p->ai_next) 
+	{
+		h = (struct sockaddr_in *) p->ai_addr;
+		strcpy(ip , inet_ntoa( h->sin_addr ) );
+	}
+	
+	freeaddrinfo(servinfo); // all done with this structure
+	return 0;
 }
 
 void * send_data(void * arg){
