@@ -55,7 +55,7 @@ void InitTetris(){
 
 	if(multi){
         pthread_mutex_init(&mutx, NULL);
-		connect_server();
+		connectServer();
         opPlayer.online = 0;
 	    memset(opPlayer.field,0,sizeof(opPlayer.field));
 	    opPlayer.score = 0;
@@ -63,14 +63,15 @@ void InitTetris(){
 	    attack_flag = 0;
 	    attack_score = 0;
 		while(1){
+			DrawLoadingGraphic();
 			if(opPlayer.online)
 				break;
-			sleep(1);
+			usleep(100000);
 
 		}
 	}
 
-
+	clear();
 	DrawOutline();
 	DrawField(field);
 	DrawBlockWithFeatures(blockY,blockX,nextBlock[0],blockRotate);
@@ -79,6 +80,17 @@ void InitTetris(){
 
 
 
+}
+
+void DrawLoadingGraphic(){
+	DrawBox(2,1,2,20);
+	move(4,3);
+	printw("waiting player..");
+	refresh();
+	usleep(100000);
+	move(4,3);
+	printw("waiting player.");
+	refresh();
 }
 
 void DrawOutline(){	
@@ -449,7 +461,6 @@ void PuyoBomb(char f[HEIGHT][WIDTH]){
 
 
 }
-
 void DeleteXBlock(int y, int x){
 	int ny,nx,i;
 	for(i=0 ; i < 4 ; i++){
@@ -468,7 +479,7 @@ void BlockDown(int sig){
 	if(process_flag)
 		return;
 	if(multi){
-		SendPlayerData();
+		sendPlayerData();
 	}
 
 	if(CheckToMove(field,nextBlock[0],blockRotate, blockY+1, blockX)){
@@ -498,7 +509,7 @@ void BlockDown(int sig){
 		blockY = -1;
 		blockX = WIDTH/2 -2;
 
-		Attack(attack_score);
+		AddXblockToField(attack_score);
 		CheckFall(field);
 		DrawNextBlock(nextBlock);
 		DrawField(field);
@@ -512,7 +523,7 @@ void BlockDown(int sig){
 	timed_out = 0;
 
 }
-void Attack(int s){
+void AddXblockToField(int s){
 	if(!attack_flag)
 		return;
 	int block_cnt,i,j,div,re;
@@ -641,7 +652,7 @@ int CalScore(int num_of_puyo, int puyo[], int num_of_color){
 	return num_of_puyo *( chain_score + connect_score + color_score) *10;
 }
 
-void connect_server(){
+void connectServer(){
 	struct sockaddr_in serv_addr;
 	pthread_t snd_thread, rcv_thread;
 	void * thread_return;
@@ -649,27 +660,25 @@ void connect_server(){
 
 	char *hostname = "puyo_server";
 	char ip[100];
-	hostname_to_ip(hostname , ip);
+	hostnameToIp(hostname , ip);
 
 	memset(&serv_addr, 0 , sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
-	// serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	// serv_addr.sin_addr.s_addr = htonl(gethostbyname("server")->h_addr);
 	serv_addr.sin_addr.s_addr = inet_addr(ip);
 	serv_addr.sin_port = htons(7001);
 
 	if(connect(sock,(struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
-		error_handling("connect error");
+		errorHandling("connect error");
 
 	me.online = 1;
-	SendPlayerData();
-	pthread_create(&rcv_thread,NULL,recv_data, (void*)&sock);
+	sendPlayerData();
+	pthread_create(&rcv_thread,NULL,receiveData, (void*)&sock);
 	//pthread_detach(snd_thread);
 	pthread_detach(rcv_thread);
 	return;
 }
 
-int hostname_to_ip(char * hostname , char* ip)
+int hostnameToIp(char * hostname , char* ip)
 {
 	int sockfd;  
 	struct addrinfo hints, *servinfo, *p;
@@ -698,7 +707,7 @@ int hostname_to_ip(char * hostname , char* ip)
 }
 
 
-void * recv_data(void * arg){
+void * receiveData(void * arg){
 	int socket = *((int*)arg);
 	while(1){
 		if(gameOver)
@@ -706,7 +715,7 @@ void * recv_data(void * arg){
 		read(socket,(player*)&opPlayer,sizeof(opPlayer));
 		if(!opPlayer.online)
 			break;
-		DrawOpField();
+		drawOpField();
 		refresh();
 		printOpScore();
 		if(opPlayer.score != op_score && !attack_flag){
@@ -719,12 +728,12 @@ void * recv_data(void * arg){
 	return NULL;
 }
 
-void error_handling(const string message){
+void errorHandling(const string message){
 	cout << message << endl;
 	exit(1);
 }
 
-void DrawOpField(){
+void drawOpField(){
 	int i,j;
 	for(j=0;j<HEIGHT;j++){
 		move(j+1,1+WIDTH + 17);
@@ -748,7 +757,7 @@ void DrawOpField(){
 	}
 }
 
-void SendPlayerData(){
+void sendPlayerData(){
 	pthread_mutex_lock(&mutx);
 	memcpy(me.field,field,sizeof(field));
 	me.score = score;

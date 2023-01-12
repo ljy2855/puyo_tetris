@@ -45,11 +45,15 @@ using namespace std;
 // 사용자 이름의 길이
 #define NAMELEN 16
 
+/**
+ * @brief 플레이어 정보
+ * 
+ */
 typedef struct player{
     int online;
     char field[HEIGHT][WIDTH];
     int score;
-} player;
+} player; 
 
 player opPlayer, me;
 
@@ -216,10 +220,10 @@ int gameOver=0;			        /* 게임이 종료되면 1로 setting된다.*/
 int timed_out;                  /* 알람을 초기화하기 위해 확인하는 변수 */
 int process_flag=0;             /* blockDown 함수가 실행중임을 확인하는 flag */
 int num_of_chains;              /* 현재 연쇄 콤보를 저장 */
-int sock;
-int attack_flag;
-int op_score;
-int attack_score;
+int sock;						/* 소켓 handler*/
+int attack_flag;				/* 공격을 진행중인지 여부*/
+int op_score;					/* 상대방의 점수*/
+int attack_score;				/* 내 공격점수*/
 pthread_mutex_t mutx;
 
 /***********************************************************
@@ -401,7 +405,6 @@ void DrawBlock(int y, int x, int blockID,int blockRotate,char tile);
  *		  (int) 블록의 회전 횟수
  *	return	: none
  ***********************************************************/
-
 void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate);
 
 
@@ -419,19 +422,72 @@ void play();
  ***********************************************************/
 char menu();
 
-void * recv_data(void * arg);
-void error_handling(const string message);
-void DrawOpField();
+/**
+ * @brief 게임이 실행될 동안 상대의 데이터를 받아온다
+ * 
+ * @param arg none
+ * @return void* 
+ */
+void * receiveData(void * arg);
 
-void connect_server();
+/**
+ * @brief 에러 발생시 stdout을 출력한다
+ * 
+ * @param message 
+ */
+void errorHandling(const string message);
 
+/**
+ * @brief 상대방의 field를 그린다.
+ * 
+ */
+void drawOpField();
+
+/**
+ * @brief 서버와 socket 연결 및 receiveData 쓰레드를 생성한다.
+ * 
+ */
+void connectServer();
+
+/**
+ * @brief 상대방의 점수를 그린다
+ * 
+ */
 void printOpScore();
 
+/**
+ * @brief 해당 좌표의 방해 블럭을 지운다.
+ * 
+ * @param y 
+ * @param x 
+ */
 void DeleteXBlock(int y, int x);
 
-void Attack(int s);
+/**
+ * @brief 상대방의 공격에 따라 내 필드에 방해블럭을 쌓는다
+ * 
+ * @param s 상대방의 공격점수
+ */
+void AddXblockToField(int s);
 
-void SendPlayerData();
+/**
+ * @brief 서버에 내 필드정보, 공격정보를 보낸다
+ * 
+ */
+void sendPlayerData();
 
-int hostname_to_ip(char * hostname , char* ip);
+/**
+ * @brief hostname을 통하여 ip를 받아온다
+ * 
+ * @param hostname 
+ * @param ip 
+ * @return int 반환 성공여부
+ */
+int hostnameToIp(char * hostname , char* ip);
+
+/**
+ * @brief 게임 시작전 로딩 그래픽 출력
+ * 
+ */
+void DrawLoadingGraphic();
 #endif
