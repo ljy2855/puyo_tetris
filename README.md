@@ -1,12 +1,12 @@
 # puyo
-테트리스 기반 뿌요뿌요 테트리스 구현
+테트리스 기반 뿌요뿌요 테트리스 구현 <br>
 리눅스 콘솔 기반 ncurses를 통하여 그래픽 구현
 
 * 실행 환경 : 리눅스 터미널
 
 release : https://puyo.cspc.me
 
-# 게임 방법 
+## 게임 방법 
 * 테트리스와 동일하게 블럭 쌓기
 
 * 쌓인 블럭은 위에서 아래로 떨어진다.
@@ -18,8 +18,8 @@ release : https://puyo.cspc.me
 
 * 1 vs 1 멀티, 블럭을 지워 얻은 점수로 상대에게 방해 블럭을 보낸다.
   
-# 실행 방법
-## Terminal
+## 실행 방법
+### Terminal
 * 싱글 플레이   
   $make   
   $./puyo_client
@@ -31,11 +31,16 @@ release : https://puyo.cspc.me
   $./puyo_client    
   두명이 접속하게  되면 게임 시작
 
-## Web
+### Web
 * https://puyo.cspc.me
 
 
-
+## Stack
+### release
+* Docker
+* ttyd
+### game
+* C
 
 
   
