@@ -4,4 +4,6 @@ WORKDIR /WORKSPACE
 
 COPY . /WORKSPACE
 
+RUN chmod 775 /WORKSPACE/puyo_server
+
 ENTRYPOINT ["/WORKSPACE/puyo_server"]

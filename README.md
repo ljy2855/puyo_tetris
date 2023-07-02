@@ -1,8 +1,6 @@
-# puyo
-테트리스 기반 뿌요뿌요 테트리스 구현 <br>
-리눅스 콘솔 기반 ncurses를 통하여 그래픽 구현
+# PuyoPuyo Tetris
+puyo puyo tetris based terminal CLI
 
-* 실행 환경 : 리눅스 터미널
 
 release : https://puyo.cspc.me
 
@@ -21,16 +19,17 @@ release : https://puyo.cspc.me
 ## 실행 방법
 ### Terminal
 * 싱글 플레이   
-  $make   
-  $./puyo_client
+  $make    
+  $./app/puyo_client
 
 
-* 멀티 플레이   
-  $make   
-  $./puyo_server : 서버 실행   
+* 멀티 플레이 
+  $chmod +x deploy.sh  
+  $./deploy.sh
   $./puyo_client    
   두명이 접속하게  되면 게임 시작
 
+  game server host to http://puyo_server and client host to http://localhost:7000 
 ### Web
 * https://puyo.cspc.me
 

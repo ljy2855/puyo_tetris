@@ -19,6 +19,7 @@ int main(){
 			case MENU_EXIT: exit=1; break;
 			default: break;
 		}
+		multi = 0;
 	}
 
 	endwin();
@@ -658,7 +659,7 @@ void connectServer(){
 	void * thread_return;
 	sock = socket(PF_INET,SOCK_STREAM, 0);
 
-	char *hostname = "puyo_server";
+	char hostname[100] = "puyo_server";
 	char ip[100];
 	hostnameToIp(hostname , ip);
 

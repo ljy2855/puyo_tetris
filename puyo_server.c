@@ -19,7 +19,6 @@ typedef struct player{
 }player;
 
 void * handle_clnt(void * arg);
-void send_data(int rcv_sock,player play_temp, int len);
 void error_handling(char * msg);
 void * rcv_and_snd(void * arg);
 
@@ -54,20 +53,20 @@ int main(int argc, char *argv[]){
         pthread_mutex_lock(&mutx);
         clnt_socks[clnt_cnt++]= clnt_sock;
         waiting_player++;
-        pthread_mutex_unlock(&mutx);
+        
         
         
         if(waiting_player ==2){
+
+     
             pthread_create(&t_id, NULL, handle_clnt, NULL);
             pthread_detach(t_id);
-            pthread_mutex_lock(&mutx);
+         
             waiting_player = 0;
-            pthread_mutex_unlock(&mutx);
             printf("match start\n");
-            sleep(1);
         }
-        
-    }
+        pthread_mutex_unlock(&mutx);
+        }
     close(serv_sock);
     return 0;
     
@@ -87,12 +86,13 @@ void * handle_clnt(void * arg){
     
     pthread_create(&t1,NULL,rcv_and_snd,(void*) p1_socket_set);
     pthread_create(&t2,NULL,rcv_and_snd,(void*) p2_socket_set);
-    pthread_join(t1,NULL);
-    pthread_join(t2,NULL);
+    pthread_detach(t1);
+    pthread_join(t2, NULL);
     usleep(100000);
+    pthread_mutex_lock(&mutx);
     close(p1_socket_set[0]);
     close(p1_socket_set[1]);
-    pthread_mutex_lock(&mutx);
+   
     
     for(i=0; i < clnt_cnt ; i++){
         if(p1_socket_set[1] == clnt_socks[i]){
@@ -117,21 +117,14 @@ void * rcv_and_snd(void * arg){
     snd_socket = ((int*) arg)[1];
     while(1){
 
-        read(rvc_socket,(player *) &temp_data,sizeof(temp_data));
-        send_data(snd_socket,temp_data,sizeof(temp_data));
+        while(read(rvc_socket,(player *) &temp_data,sizeof(temp_data))<0);
+        write(snd_socket, (player *)&temp_data, sizeof(temp_data));
         if (!temp_data.online)
             break;
     }
 }
 
-void send_data(int rcv_sock,player play_temp, int len){
 
-    pthread_mutex_lock(&mutx);
-    write(rcv_sock, (player*) &play_temp, len);
-    pthread_mutex_unlock(&mutx);
-
-
-}
 void error_handling(char * message){
     fputs(message,stderr);
     fputc('\n',stderr);
